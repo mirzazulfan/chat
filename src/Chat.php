@@ -405,4 +405,9 @@ class Chat
     {
         return config('musonza_chat.laravel_notifications');
     }
+
+    public static function routesPrefix()
+    {
+        return config('musonza_chat.routes_prefix');
+    }
 }

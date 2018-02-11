@@ -16,7 +16,8 @@
     "require-dev": {
         "phpunit/phpunit": "~6.0",
         "orchestra/testbench": "3.5.*",
-        "orchestra/database": "3.5.*"
+        "orchestra/database": "3.5.*",
+        "spatie/phpunit-watcher": "dev-master"
     },
     "license": "MIT",
     "authors": [
@@ -34,7 +35,10 @@
     "autoload-dev": {
         "psr-4": {
             "Musonza\\Chat\\Tests\\": "tests"
-        }
+        },
+        "classmap": [
+            "tests/traits"
+        ]
     },
     "extra": {
         "laravel": {

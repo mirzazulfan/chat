@@ -16,8 +16,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
         parent::setUp();
 
         $this->artisan('migrate', ['--database' => 'testbench']);
-        $this->loadMigrationsFrom(__DIR__.'/../src/migrations');
-        $this->withFactories(__DIR__.'/../src/database/factories');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->withFactories(__DIR__ . '/../database/factories');
 
         $this->users = $this->createUsers(6);
     }
@@ -41,9 +41,9 @@ class TestCase extends \Orchestra\Testbench\TestCase
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
 
         // $app['config']->set('database.default', 'testbench');
@@ -79,5 +79,19 @@ class TestCase extends \Orchestra\Testbench\TestCase
     public function createUsers($count = 1)
     {
         return factory(User::class, $count)->create();
+    }
+
+    public function participants($count = 1)
+    {
+        return array_column($this->createUsers($count)->toArray(), 'id');
+    }
+
+    protected function signIn($user = null)
+    {
+        $user = $user ?: factory(User::class)->create();
+
+        $this->actingAs($user);
+
+        return $this;
     }
 }

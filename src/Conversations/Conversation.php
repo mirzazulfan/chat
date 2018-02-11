@@ -15,6 +15,7 @@ class Conversation extends Model
 
     protected $casts = [
         'data' => 'array',
+        'private' => 'boolean'
     ];
 
     /**

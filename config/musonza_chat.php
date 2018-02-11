@@ -18,4 +18,8 @@ return [
      * If your database doesn't support JSON columns you will need to set this to false.
      */
     'laravel_notifications' => true,
+
+    'routes_prefix' => '',
+
+    'middleware' => []
 ];
