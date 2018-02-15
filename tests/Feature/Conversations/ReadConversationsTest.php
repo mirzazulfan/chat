@@ -13,10 +13,6 @@ class ReadConversationsTest extends TestCase
     /** @test */
     function guests_may_not_list_conversations()
     {
-        $conversation = $this->makeConversation();
-
-        Chat::addParticipants($conversation, $this->participants(3)); 
-
         $this->json('GET',route('conversations.index'))
             ->assertStatus(Response::HTTP_FORBIDDEN);
     }
@@ -24,34 +20,36 @@ class ReadConversationsTest extends TestCase
     /** @test */
     function authenticated_user_can_list_their_conversations()
     {
-        $conversation = $this->makeConversation();
+        $this->sendMessage();
 
-        Chat::addParticipants($conversation, $this->participants(3)); 
-
-        Chat::message('Hello')
-            ->from(1)
-            ->to($conversation)
-            ->send(); 
-
-        $this->signIn($conversation->users[0]);
+        $this->signIn($this->conversation->users[0]);
 
         $this->json('GET', route('conversations.index'))
             ->assertSuccessful()
             ->assertJson([
-                'current_page' => 1,
-                'last_page' => 1,
-                'per_page' => 25,
-                'last_page_url' => 'http://localhost/conversations?page=1',
-                'next_page_url' => null,
-                'path' => 'http://localhost/conversations',
-                'total' => 1,
-                'data' => [
+                'data' =>[
                     [
+                        'id' => 1,
                         'private' => false,
                         'last_message' => [
-                            'body' => 'Hello',
+                            'id' => 1,
+                            'message_id' => '1',
+                            'conversation_id' => '1',
+                            'user_id' => '1',
+                            'is_seen' => '0',
+                            'is_sender' => '0',
                             'type' => 'text',
                         ]
+                    ]
+                ],
+                'meta' => [
+                    'pagination' => [
+                        'total'=> 1,
+                        'count' => 1,
+                        'per_page' => 25,
+                        'current_page' =>1,
+                        'total_pages' => 1,
+                        'links' => []
                     ]
                 ]
             ]);
@@ -60,16 +58,23 @@ class ReadConversationsTest extends TestCase
     /** @test */
     public function displays_details_of_specific_conversation_to_authorized_user()
     {
-        $conversation = $this->makeConversation();
-
-        Chat::addParticipants($conversation, [$this->users[0]]); 
-
-        $this->signIn($this->users[0]);
-
-        $this->json('GET', route('conversations.show', ['conversation' => $conversation->id]))
+        $this->sendMessage();
+        
+        $this->signIn($this->conversation->users[0]);
+        $this->json('GET', route('conversations.show', ['conversation' => $this->conversation->id]))
             ->assertSuccessful()
             ->assertJson([
-                'id' => $conversation->id
+                'id' => $this->conversation->id,
+                'private' => false,
+                'last_message' => [
+                    'id' => 1,
+                    'message_id' => '1',
+                    'conversation_id' => '1',
+                    'user_id' => '1',
+                    'is_seen' => '0',
+                    'is_sender' => '0',
+                    'type' => 'text',
+                ]
             ]);
     }
 

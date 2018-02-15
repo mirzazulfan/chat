@@ -1,10 +1,8 @@
 <?php
 
-namespace Musonza\Chat\Conversations\UI\Requests;
+namespace Musonza\Chat\Http\Requests;
 
-use Musonza\Chat\Http\Requests\ChatRequest;
-
-class CreateConversationRequest extends ChatRequest
+class CreateConversationRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.

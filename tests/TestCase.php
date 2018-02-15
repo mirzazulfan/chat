@@ -3,6 +3,7 @@
 namespace Musonza\Chat\Tests;
 
 use Musonza\Chat\User;
+use Chat;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -93,5 +94,17 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $this->actingAs($user);
 
         return $this;
+    }
+
+    public function sendMessage()
+    {
+        $this->conversation = $this->makeConversation();
+
+        Chat::addParticipants($this->conversation, $this->participants(3)); 
+
+        $this->message = Chat::message('Hello')
+            ->from(1)
+            ->to($this->conversation)
+            ->send(); 
     }
 }

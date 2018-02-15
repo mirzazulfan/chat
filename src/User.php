@@ -11,7 +11,7 @@ class User extends Authenticatable
 {
     use Notifiable;
 
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'remember_token'];
 
     public function conversations()
     {

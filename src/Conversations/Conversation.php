@@ -261,6 +261,29 @@ class Conversation extends Model
             );
     }
 
+    public function includeLastMessage()
+    {
+        if (Chat::laravelNotifications()) {
+            return $this->join('mc_conversation_user', 'mc_conversation_user.conversation_id', '=', 'mc_conversations.id')
+                ->with([
+                    'last_message' => function ($query) {
+                        $query->join('notifications', 'notifications.data->message_id', '=', 'mc_messages.id')
+                            ->select('notifications.*', 'mc_messages.*');
+                    },
+                ])
+                ->first();
+        }
+
+        return $this->join('mc_conversation_user', 'mc_conversation_user.conversation_id', '=', 'mc_conversations.id')
+            ->with([
+                'last_message' => function ($query) {
+                    $query->join('mc_message_notification', 'mc_message_notification.message_id', '=', 'mc_messages.id')
+                          ->select('mc_message_notification.*', 'mc_messages.*');
+                },
+            ])
+            ->first();
+    }
+
     private function getConversationsList($user, $perPage, $page, $pageName)
     {
         if (Chat::laravelNotifications()) {

@@ -4,7 +4,7 @@ namespace Musonza\Chat;
 
 // use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
-use Musonza\Chat\Conversations\Policies\ConversationPolicy;
+use Musonza\Chat\Policies\ConversationPolicy;
 use Musonza\Chat\Conversations\Conversation;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 

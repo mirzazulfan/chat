@@ -3,25 +3,29 @@
 namespace Musonza\Chat\Http\Controllers\Front;
 
 use Musonza\Chat\Http\Controllers\Controller;
-use Musonza\Chat\Conversations\UI\Requests\CreateConversationRequest;
-use Musonza\Chat\Conversations\UI\Requests\ListConversationRequest;
-use Musonza\Chat\Chat;
+use Musonza\Chat\Http\Requests\CreateConversationRequest;
+use Musonza\Chat\Http\Requests\ListConversationRequest;
 use Musonza\Chat\Conversations\Conversation;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class ConversationController extends  Controller
 {
-    public function __construct(Chat $chat)
-    {
-        $this->chat = $chat;
-    }
-
+    /**
+     * List Conversations for user
+     *
+     * @param ListConversationRequest $request
+     */
     public function index(ListConversationRequest $request)
     {
-        return $this->chat->conversations()
+        $paginator = $this->chat->conversations()
                     ->for($request->user())
                     ->page($request->page)
                     ->get();
+
+        $this->setPaginator($paginator, $request);
+           
+        return $this->conversationTransformer->transformCollection($this->collection, $paginator);
     }
 
     /**
@@ -35,12 +39,35 @@ class ConversationController extends  Controller
         return $this->chat->createConversation($request->participants); 
     }
 
+    /**
+     * Get conversation
+     *
+     * @param int $id
+     */
     public function show($id)
     {
         $conversation = Conversation::findOrFail($id);
 
         if (request()->user()->can('view', $conversation)) {
-           return $conversation;
+            return $this->conversationTransformer->transformItem($conversation->includeLastMessage());
+        }
+
+        abort(403);
+    }
+
+    /**
+     * Clear a Conversation
+     *
+     * @param int $id
+     */
+    public function destroy($id)
+    {
+        $conversation = Conversation::findOrFail($id);
+
+        if (request()->user()->can('delete', $conversation)) {
+           $this->chat->conversations($conversation)->for(request()->user())->clear();
+
+           return response([], Response::HTTP_NO_CONTENT);
         }
 
         abort(403);
