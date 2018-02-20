@@ -403,7 +403,7 @@ class Chat
 
     public static function laravelNotifications()
     {
-        return config('musonza_chat.laravel_notifications');
+        return false;
     }
 
     public static function routesPrefix()

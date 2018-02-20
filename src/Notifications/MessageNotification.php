@@ -24,11 +24,7 @@ class MessageNotification extends Eloquent
      */
     public static function make(Message $message, Conversation $conversation)
     {
-        if (Chat::laravelNotifications()) {
-            self::createLaravelNotifications($message, $conversation);
-        } else {
-            self::createCustomNotifications($message, $conversation);
-        }
+        self::createCustomNotifications($message, $conversation);
     }
 
     public static function createCustomNotifications($message, $conversation)
