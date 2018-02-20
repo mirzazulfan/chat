@@ -58,7 +58,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
         // ]);
 
         $app['config']->set('musonza_chat.user_model', 'Musonza\Chat\User');
-        $app['config']->set('musonza_chat.laravel_notifications', false);
         $app['config']->set('musonza_chat.broadcasts', false);
     }
 
@@ -100,11 +99,11 @@ class TestCase extends \Orchestra\Testbench\TestCase
     {
         $this->conversation = $this->makeConversation();
 
-        Chat::addParticipants($this->conversation, $this->participants(3)); 
+        Chat::addParticipants($this->conversation, $this->participants(3));
 
         $this->message = Chat::message('Hello')
             ->from(1)
             ->to($this->conversation)
-            ->send(); 
+            ->send();
     }
 }

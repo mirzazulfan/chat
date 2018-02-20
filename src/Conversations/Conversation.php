@@ -62,7 +62,19 @@ class Conversation extends Model
      */
     public function getMessages($user, $perPage = 25, $page = 1, $sorting = 'asc', $columns = ['*'], $pageName = 'page')
     {
-        return $this->getConversationMessages($user, $perPage, $page, $sorting, $columns, $pageName);
+        return $this->messages()
+                    ->join('mc_message_notification', 'mc_message_notification.message_id', '=', 'mc_messages.id')
+                    ->where('mc_message_notification.user_id', $user->id)
+                    ->orderBy('mc_messages.id', $sorting)
+                    ->paginate(
+                        $perPage,
+                        [
+                            'mc_message_notification.updated_at as read_at', 'mc_message_notification.user_id', 'mc_message_notification.id as notification_id',
+                            'mc_messages.*',
+                        ],
+                        $pageName,
+                        $page
+                    );
     }
 
     /**
@@ -77,7 +89,16 @@ class Conversation extends Model
      */
     public function getList($user, $perPage = 25, $page = 1, $pageName = 'page')
     {
-        return $this->getConversationsList($user, $perPage, $page, $pageName);
+        return $this->join('mc_conversation_user', 'mc_conversation_user.conversation_id', '=', 'mc_conversations.id')
+            ->with([
+                'last_message' => function ($query) {
+                    $query->join('mc_message_notification', 'mc_message_notification.message_id', '=', 'mc_messages.id')
+                        ->select('mc_message_notification.*', 'mc_messages.*');
+                },
+            ])->where('mc_conversation_user.user_id', $user->id)
+            ->orderBy('mc_conversations.updated_at', 'DESC')
+            ->distinct('mc_conversations.id')
+            ->paginate($perPage, ['mc_conversations.*'], $pageName, $page);
     }
 
     /**
@@ -201,9 +222,11 @@ class Conversation extends Model
      *
      * @return Notifications The notifications.
      */
-    public function getNotifications($user, $readAll = false)
+    public function getNotifications($user)
     {
-        return $this->notifications($user, $readAll);
+        return MessageNotification::where('user_id', $user->id)
+            ->where('conversation_id', $this->id)
+            ->get();
     }
 
     /**
@@ -215,7 +238,9 @@ class Conversation extends Model
      */
     public function clear($user)
     {
-        return $this->clearConversation($user);
+        return MessageNotification::where('user_id', $user->id)
+            ->where('conversation_id', $this->id)
+            ->delete();
     }
 
     /**
@@ -225,24 +250,9 @@ class Conversation extends Model
      */
     public function readAll($user)
     {
-        return $this->getNotifications($user, true);
-    }
-
-    private function getConversationMessages($user, $perPage, $page, $sorting, $columns, $pageName)
-    {
-        return $this->messages()
-            ->join('mc_message_notification', 'mc_message_notification.message_id', '=', 'mc_messages.id')
-            ->where('mc_message_notification.user_id', $user->id)
-            ->orderBy('mc_messages.id', $sorting)
-            ->paginate(
-                $perPage,
-                [
-                    'mc_message_notification.updated_at as read_at', 'mc_message_notification.user_id', 'mc_message_notification.id as notification_id',
-                    'mc_messages.*',
-                ],
-                $pageName,
-                $page
-            );
+        MessageNotification::where('user_id', $user->id)
+            ->where('conversation_id', $this->id)
+            ->update(['is_seen' => 1]);
     }
 
     public function includeLastMessage()
@@ -255,38 +265,5 @@ class Conversation extends Model
                 },
             ])
             ->first();
-    }
-
-    private function getConversationsList($user, $perPage, $page, $pageName)
-    {
-        return $this->join('mc_conversation_user', 'mc_conversation_user.conversation_id', '=', 'mc_conversations.id')
-            ->with([
-                'last_message' => function ($query) {
-                    $query->join('mc_message_notification', 'mc_message_notification.message_id', '=', 'mc_messages.id')
-                        ->select('mc_message_notification.*', 'mc_messages.*');
-                },
-            ])->where('mc_conversation_user.user_id', $user->id)
-            ->orderBy('mc_conversations.updated_at', 'DESC')
-            ->distinct('mc_conversations.id')
-            ->paginate($perPage, ['mc_conversations.*'], $pageName, $page);
-    }
-
-    private function notifications($user, $readAll)
-    {
-        $notifications = MessageNotification::where('user_id', $user->id)
-            ->where('conversation_id', $this->id);
-
-        if ($readAll) {
-            return $notifications->update(['is_seen' => 1]);
-        }
-
-        return $notifications->get();
-    }
-
-    private function clearConversation($user)
-    {
-        return MessageNotification::where('user_id', $user->id)
-            ->where('conversation_id', $this->id)
-            ->delete();
     }
 }
