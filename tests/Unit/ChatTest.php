@@ -99,15 +99,7 @@ class ChatTest extends TestCase
 
         Chat::conversations($conversation)->for($this->users[0])->readAll();
 
-        $user = $this->users[0];
-
-        $notifications = $this->users[0]->unreadNotifications->filter(function ($item) use ($user, $conversation) {
-            return $item->type == 'Musonza\Chat\Notifications\MessageSent' &&
-            $item->data['conversation_id'] == $conversation->id &&
-            $item->notifiable_id == $user->id;
-        });
-
-        $this->assertEquals(0, $notifications->count());
+        $this->assertEquals(0, Chat::for($this->users[0])->unreadCount());
     }
 
     /** @test */
